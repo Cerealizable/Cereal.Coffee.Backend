@@ -1,0 +1,8 @@
+{
+    "body": "{\"source\":\"tok_visa\",\"price\":12.50,\"quantity\":2}",
+    "requestContext": {
+      "identity": {
+        "cognitoIdentityId": "COMPANY-SUB-1234"
+      }
+    }
+  }
