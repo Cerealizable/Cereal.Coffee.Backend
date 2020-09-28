@@ -15,18 +15,79 @@ provider:
   runtime: nodejs12.x
   stage: prod
   region: us-west-2
-  # To load environment variables externally
-  # rename env.example to .env and uncomment
-  # the following line. Also, make sure to not
-  # commit your .env.
-  #
-  #environment:
-  #  SAMPLE_ENV_VAR: ${env:SAMPLE_ENV_VAR}
+
+  # These environment variables are made available to our functions under process.env.
+  environment:
+    productsTableName: coffeeProducts
+    stripeSecretKey: ${env:STRIPE_SECRET_KEY}
+  
+  # Permission policy for the Lambda function
+  iamRoleStatements:
+    - Effect: Allow
+      Action: 
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:us-west-2:*:*"
 
 functions:
-  hello:
-    handler: handler.hello
+  # - authorizer: authenticate using the AWS IAM role
+  productCreate:
+    handler: products.create
     events:
       - http:
-          path: hello
+          path: products/create
+          method: post
+          cors: true
+          authorizer: aws_iam
+  productGet:
+    handler: products.get
+    events:
+      - http:
+          path: products/get/{id}
           method: get
+          cors: true
+          authorizer: aws_iam
+  productList:
+    handler: products.list
+    events:
+      - http:
+          path: products/get
+          method: get
+          cors: true
+          authorizer: aws_iam
+  productUpdate:
+    handler: products.update
+    events:
+      - http:
+          path: products/update/{id}
+          method: put
+          cors: true
+          authorizer: aws_iam
+  productDel:
+    handler: products.del
+    events:
+      - http:
+          path: products/delete/{id}
+          method: delete
+          cors: true
+          authorizer: aws_iam
+  billingStripe:
+    handler: billing.stripe
+    events:
+      - http:
+          path: billing
+          method: post
+          cors: true
+          authorizer: aws_iam
+# Create our resources with separate CloudFormation templates
+resources:
+  # API Gateway Errors
+  - ${file(resources/api-gateway-errors.yml)}
+  
+
+
