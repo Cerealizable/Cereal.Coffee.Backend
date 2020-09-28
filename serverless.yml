@@ -1,5 +1,5 @@
 # NOTE: update this with your service name
-service: cereal-coffee-app-api
+service: cereal-coffee-app-2-api
 
 # Create an optimized package for our functions 
 package:
@@ -10,15 +10,22 @@ plugins:
   - serverless-offline
   - serverless-dotenv-plugin # Load .env as environment variables
 
+custom:
+  # Our stage is based on what is passed in when running serverless commands or falls back to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  # Set the table name here so we can use it while testing locally
+  tableName: ${self:custom.stage}-coffeeProducts
+
 provider:
   name: aws
   runtime: nodejs12.x
-  stage: prod
+  stage: dev
   region: us-west-2
 
   # These environment variables are made available to our functions under process.env.
   environment:
-    productsTableName: coffeeProducts
+    # productsTableName
+    tableName: ${self:custom.tableName}
     stripeSecretKey: ${env:STRIPE_SECRET_KEY}
   
   # Permission policy for the Lambda function
@@ -32,7 +39,8 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:us-west-2:*:*"
+      Resource: 
+        - "Fn::GetAtt": [ CoffeeProductsTable, Arn ]
 
 functions:
   # - authorizer: authenticate using the AWS IAM role
@@ -88,6 +96,13 @@ functions:
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}
+  # DynamoDB
+  - ${file(resources/dynamo-db-table.yml)}
+  # S3
+  - ${file(resources/s3-bucket.yml)}
+  # Cognito
+  - ${file(resources/cognito-user-pool.yml)}
+  - ${file(resources/cognito-identity-pool.yml)}
   
 
 
