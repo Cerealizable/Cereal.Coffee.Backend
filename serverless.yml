@@ -48,7 +48,7 @@ functions:
     handler: products.create
     events:
       - http:
-          path: products/create
+          path: products
           method: post
           cors: true
           authorizer: aws_iam
@@ -56,7 +56,7 @@ functions:
     handler: products.get
     events:
       - http:
-          path: products/get/{id}
+          path: products/{id}
           method: get
           cors: true
           authorizer: aws_iam
@@ -64,7 +64,7 @@ functions:
     handler: products.list
     events:
       - http:
-          path: products/get
+          path: products
           method: get
           cors: true
           authorizer: aws_iam
@@ -72,7 +72,7 @@ functions:
     handler: products.update
     events:
       - http:
-          path: products/update/{id}
+          path: products/{id}
           method: put
           cors: true
           authorizer: aws_iam
@@ -80,7 +80,7 @@ functions:
     handler: products.del
     events:
       - http:
-          path: products/delete/{id}
+          path: products/{id}
           method: delete
           cors: true
           authorizer: aws_iam

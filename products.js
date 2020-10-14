@@ -5,20 +5,20 @@ import dynamoDb from "./libs/dynamodb-lib";
 export const create = handler(async (event, context) => {
     const data = JSON.parse(event.body);
     const params = {
-        TableName : process.env.productsTablename,
+        TableName : process.env.tableName,
         // 'Item' attributes
         // - 'companyId': company identities are federated through the Cognito Identity Pool,
         //          identity id = company id of the authenticated company
         // - 'productId': a unique uuid
         // - 'content': parsed from request body
-        // - 'Image': parsed from request body
+        // - 'attachment': parsed from request body
         // - 'createdAt': current Unix timestamp
 
         Item: {
             companyId: event.requestContext.identity.cognitoIdentityId,
             productId: uuid.v1(),
             content: data.content,
-            image: data.attachment,
+            attachment: data.attachment,
             price: data.price,
             createdAt: Date.now()
         }
@@ -31,7 +31,7 @@ export const create = handler(async (event, context) => {
 
 export const get = handler(async (event, context) => {
     const params = {
-      TableName: process.env.productsTablename,
+      TableName: process.env.tableName,
       // 'Key' defines the partition key and sort key of the item to be retrieved
       // - 'companyId': Identity Pool identity id of the authenticated user
       // TODO: update companyId to be the companyId of the authenticated user
@@ -52,7 +52,7 @@ export const get = handler(async (event, context) => {
 
   export const list = handler(async (event, context) => {
     const params = {
-      TableName: process.env.productsTablename,
+      TableName: process.env.tableName,
       // 'KeyConditionExpression' defines the condition for the query
       // - 'companyId = :companyId': only return items with matching 'companyId' partition key
       // 'ExpressionAttributeValues' defines the value in the condition
@@ -70,7 +70,7 @@ export const get = handler(async (event, context) => {
 export const update = handler(async (event, context) => {
     const data = JSON.parse(event.body);
     const params = {
-      TableName: process.env.productsTablename,
+      TableName: process.env.tableName,
       // 'Key' defines the partition key and sort key of the item to be updated
       // - 'companyId': Identity Pool identity id of the authenticated users company
       // - 'productId': path parameter
@@ -80,7 +80,7 @@ export const update = handler(async (event, context) => {
       },
       // 'UpdateExpression' defines the attributes to be updated
       // 'ExpressionAttributeValues' defines the value in the update expression
-      UpdateExpression: "SET content = :content, image = :attachment",
+      UpdateExpression: "SET content = :content, attachment = :attachment",
       ExpressionAttributeValues: {
         ":attachment": data.attachment || null,
         ":content": data.content || null
@@ -96,7 +96,7 @@ export const update = handler(async (event, context) => {
 
 export const del = handler(async (event, context) => {
     const params = {
-        TableName: process.env.productsTablename,
+        TableName: process.env.tableName,
         // 'Key' defines the partition key and sort key of the item to be removed
         // - 'companyId': Identity Pool identity id of the authenticated users company
         // - 'productId': path parameter
