@@ -11,36 +11,41 @@ plugins:
   - serverless-dotenv-plugin # Load .env as environment variables
 
 custom:
-  # Our stage is based on what is passed in when running serverless commands or falls back to what we have set in the provider section.
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or falls back to what we have set in the provider section.
   stage: ${opt:stage, self:provider.stage}
-  # Set the table name here so we can use it while testing locally
-  tableName: ${self:custom.stage}-coffeeProducts
+  # Name of the SST app that's deploying our infrastructure
+  sstApp: ${self:custom.stage}-cereal-coffee-shop-infra
+  # # Set the table name here so we can use it while testing locally
+  # tableName: ${self:custom.stage}-coffeeProducts
 
 provider:
   name: aws
   runtime: nodejs12.x
   stage: dev
-  region: us-west-2
+  region: us-east-1
 
   # These environment variables are made available to our functions under process.env.
+    # These environment variables are made available to our functions
+  # under process.env.
   environment:
-    # productsTableName
-    tableName: ${self:custom.tableName}
     stripeSecretKey: ${env:STRIPE_SECRET_KEY}
-  
-  # Permission policy for the Lambda function
+    tableName: !ImportValue '${self:custom.sstApp}-TableName'
+
   iamRoleStatements:
     - Effect: Allow
-      Action: 
-        - dynamodb:DescribeTable
-        - dynamodb:Query
+      Action:
         - dynamodb:Scan
+        - dynamodb:Query
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: 
-        - "Fn::GetAtt": [ CoffeeProductsTable, Arn ]
+        - dynamodb:DescribeTable
+      # Restrict our IAM role permissions to
+      # the specific table for the stage
+      Resource:
+        - !ImportValue '${self:custom.sstApp}-TableArn'
 
 functions:
   # - authorizer: authenticate using the AWS IAM role
@@ -96,13 +101,8 @@ functions:
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}
-  # DynamoDB
-  - ${file(resources/dynamo-db-table.yml)}
-  # S3
-  - ${file(resources/s3-bucket.yml)}
-  # Cognito
-  - ${file(resources/cognito-user-pool.yml)}
-  - ${file(resources/cognito-identity-pool.yml)}
+  # Cognito Identity Pool Policy
+  - ${file(resources/cognito-policy.yml)}
   
 
 
