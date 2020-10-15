@@ -9,38 +9,44 @@ plugins:
   - serverless-bundle # Package our functions with Webpack
   - serverless-offline
   - serverless-dotenv-plugin # Load .env as environment variables
+  - serverless-pseudo-parameters 
 
 custom:
-  # Our stage is based on what is passed in when running serverless commands or falls back to what we have set in the provider section.
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or falls back to what we have set in the provider section.
   stage: ${opt:stage, self:provider.stage}
-  # Set the table name here so we can use it while testing locally
-  tableName: ${self:custom.stage}-coffeeProducts
+  # Name of the SST app that's deploying our infrastructure
+  sstApp: ${self:custom.stage}-cereal-coffee-shop-infra
+  # # Set the table name here so we can use it while testing locally
+  # tableName: ${self:custom.stage}-coffeeProducts
 
 provider:
   name: aws
   runtime: nodejs12.x
   stage: dev
-  region: us-west-2
+  region: us-east-1
 
   # These environment variables are made available to our functions under process.env.
+    # These environment variables are made available to our functions
+  # under process.env.
   environment:
-    # productsTableName
-    tableName: ${self:custom.tableName}
     stripeSecretKey: ${env:STRIPE_SECRET_KEY}
-  
-  # Permission policy for the Lambda function
+    tableName: !ImportValue '${self:custom.sstApp}-TableName'
+
   iamRoleStatements:
     - Effect: Allow
-      Action: 
-        - dynamodb:DescribeTable
-        - dynamodb:Query
+      Action:
         - dynamodb:Scan
+        - dynamodb:Query
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: 
-        - "Fn::GetAtt": [ CoffeeProductsTable, Arn ]
+        - dynamodb:DescribeTable
+      # Restrict our IAM role permissions to
+      # the specific table for the stage
+      Resource:
+        - !ImportValue '${self:custom.sstApp}-TableArn'
 
 functions:
   # - authorizer: authenticate using the AWS IAM role
@@ -48,7 +54,7 @@ functions:
     handler: products.create
     events:
       - http:
-          path: products/create
+          path: products
           method: post
           cors: true
           authorizer: aws_iam
@@ -56,7 +62,7 @@ functions:
     handler: products.get
     events:
       - http:
-          path: products/get/{id}
+          path: products/{id}
           method: get
           cors: true
           authorizer: aws_iam
@@ -64,7 +70,7 @@ functions:
     handler: products.list
     events:
       - http:
-          path: products/get
+          path: products
           method: get
           cors: true
           authorizer: aws_iam
@@ -72,7 +78,7 @@ functions:
     handler: products.update
     events:
       - http:
-          path: products/update/{id}
+          path: products/{id}
           method: put
           cors: true
           authorizer: aws_iam
@@ -80,7 +86,7 @@ functions:
     handler: products.del
     events:
       - http:
-          path: products/delete/{id}
+          path: products/{id}
           method: delete
           cors: true
           authorizer: aws_iam
@@ -96,13 +102,8 @@ functions:
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}
-  # DynamoDB
-  - ${file(resources/dynamo-db-table.yml)}
-  # S3
-  - ${file(resources/s3-bucket.yml)}
-  # Cognito
-  - ${file(resources/cognito-user-pool.yml)}
-  - ${file(resources/cognito-identity-pool.yml)}
+  # Cognito Identity Pool Policy
+  - ${file(resources/cognito-policy.yml)}
   
 
 
