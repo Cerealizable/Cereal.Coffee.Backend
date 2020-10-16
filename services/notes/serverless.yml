@@ -120,6 +120,51 @@ functions:
           cors: true
           authorizer: aws_iam
 
+  productCreate:
+    handler: products.create
+    events:
+      - http:
+          path: products
+          method: post
+          cors: true
+          authorizer: aws_iam
+
+  productGet:
+    handler: products.get
+    events:
+      - http:
+          path: products/{id}
+          method: get
+          cors: true
+          authorizer: aws_iam
+
+  productList:
+    handler: products.list
+    events:
+      - http:
+          path: products
+          method: get
+          cors: true
+          authorizer: aws_iam
+
+  productUpdate:
+    handler: products.update
+    events:
+      - http:
+          path: products/{id}
+          method: put
+          cors: true
+          authorizer: aws_iam
+
+  productDel:
+    handler: products.del
+    events:
+      - http:
+          path: products/{id}
+          method: delete
+          cors: true
+          authorizer: aws_iam
+
 # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors
