@@ -1,5 +1,5 @@
 {
-  "name": "cereal-coffee-shop-infra",
+  "name": "cereal-coffee-shop-infra-2",
   "type": "@serverless-stack/resources",
   "stage": "dev",
   "region": "us-east-1"
