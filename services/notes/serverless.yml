@@ -28,6 +28,7 @@ provider:
   environment:
     stripeSecretKey: ${env:STRIPE_SECRET_KEY}
     tableName: !ImportValue '${self:custom.sstApp}-TableName'
+    tableName_notes: 'test_notes'
 
   iamRoleStatements:
     - Effect: Allow
