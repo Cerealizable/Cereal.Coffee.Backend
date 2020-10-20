@@ -44,6 +44,7 @@ provider:
       # the specific table for the stage
       Resource:
         - !ImportValue '${self:custom.sstApp}-TableArn'
+        - 'arn:aws:dynamodb:us-east-1:870565755685:table/notes_test'
 
 functions:
   # Defines an HTTP API endpoint that calls the main function in create.js
