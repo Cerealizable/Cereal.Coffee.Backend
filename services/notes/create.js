@@ -4,6 +4,7 @@ import dynamoDb from "./libs/dynamodb-lib";
 
 export const main = handler(async (event, context) => {
   const data = JSON.parse(event.body);
+  console.log("Tablename: ", process.env.tableName_notes);
   const params = {
     TableName: process.env.tableName_notes,
     // 'Item' contains the attributes of the item to be created
