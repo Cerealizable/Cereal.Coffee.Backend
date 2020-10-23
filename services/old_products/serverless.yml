@@ -1,6 +1,7 @@
-service: notes-api
+# NOTE: update this with your service name
+service: cereal-coffee-app-api
 
-# Create an optimized package for our functions
+# Create an optimized package for our functions 
 package:
   individually: true
 
@@ -16,6 +17,8 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   # Name of the SST app that's deploying our infrastructure
   sstApp: ${self:custom.stage}-cereal-coffee-shop-infra-2
+  # # Set the table name here so we can use it while testing locally
+  # tableName: ${self:custom.stage}-coffeeProducts
 
 provider:
   name: aws
@@ -23,12 +26,12 @@ provider:
   stage: dev
   region: us-east-1
 
-  # These environment variables are made available to our functions
+  # These environment variables are made available to our functions under process.env.
+    # These environment variables are made available to our functions
   # under process.env.
   environment:
     stripeSecretKey: ${env:STRIPE_SECRET_KEY}
     tableName: !ImportValue '${self:custom.sstApp}-TableName'
-    tableName_notes: notes_test
 
   iamRoleStatements:
     - Effect: Allow
@@ -44,84 +47,9 @@ provider:
       # the specific table for the stage
       Resource:
         - !ImportValue '${self:custom.sstApp}-TableArn'
-        - 'arn:aws:dynamodb:us-east-1:870565755685:table/notes_test'
 
 functions:
-  # Defines an HTTP API endpoint that calls the main function in create.js
-  # - path: url path is /notes
-  # - method: POST request
-  # - cors: enabled CORS (Cross-Origin Resource Sharing) for browser cross
-  #     domain api call
   # - authorizer: authenticate using the AWS IAM role
-  create:
-    handler: create.main
-    events:
-      - http:
-          path: notes
-          method: post
-          cors: true
-          authorizer: aws_iam
-
-  get:
-    # Defines an HTTP API endpoint that calls the main function in get.js
-    # - path: url path is /notes/{id}
-    # - method: GET request
-    handler: get.main
-    events:
-      - http:
-          path: notes/{id}
-          method: get
-          cors: true
-          authorizer: aws_iam
-
-  list:
-    # Defines an HTTP API endpoint that calls the main function in list.js
-    # - path: url path is /notes
-    # - method: GET request
-    handler: list.main
-    events:
-      - http:
-          path: notes
-          method: get
-          cors: true
-          authorizer: aws_iam
-
-  update:
-    # Defines an HTTP API endpoint that calls the main function in update.js
-    # - path: url path is /notes/{id}
-    # - method: PUT request
-    handler: update.main
-    events:
-      - http:
-          path: notes/{id}
-          method: put
-          cors: true
-          authorizer: aws_iam
-
-  delete:
-    # Defines an HTTP API endpoint that calls the main function in delete.js
-    # - path: url path is /notes/{id}
-    # - method: DELETE request
-    handler: delete.main
-    events:
-      - http:
-          path: notes/{id}
-          method: delete
-          cors: true
-          authorizer: aws_iam
-
-  billing:
-    # Defines an HTTP API endpoint that calls the main function in billing.js
-    # - path: url path is /billing
-    # - method: POST request
-    handler: billing.main
-    events:
-      - http:
-          path: billing
-          method: post
-          cors: true
-          authorizer: aws_iam
-
   productCreate:
     handler: products.create
     events:
@@ -147,6 +75,7 @@ functions:
           path: products
           method: get
           cors: true
+          authorizer: aws_iam
 
   productUpdate:
     handler: products.update
@@ -166,9 +95,21 @@ functions:
           cors: true
           authorizer: aws_iam
 
+  billingStripe:
+    handler: billing.stripe
+    events:
+      - http:
+          path: billing
+          method: post
+          cors: true
+          authorizer: aws_iam
+          
 # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}
   # Cognito Identity Pool Policy
   - ${file(resources/cognito-policy.yml)}
+  
+
+
