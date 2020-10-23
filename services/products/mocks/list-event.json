@@ -1,7 +1,7 @@
 {
-    "requestContext": {
-      "identity": {
-        "cognitoIdentityId": "COMPANY-SUB-1234"
-      }
+  "requestContext": {
+    "identity": {
+      "companyId": "MOCKCOMPANYID-SUB-1234"
     }
   }
+}

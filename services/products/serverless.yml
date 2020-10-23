@@ -1,7 +1,6 @@
-# NOTE: update this with your service name
-service: cereal-coffee-app-api
+service: products-api
 
-# Create an optimized package for our functions 
+# Create an optimized package for our functions
 package:
   individually: true
 
@@ -9,7 +8,6 @@ plugins:
   - serverless-bundle # Package our functions with Webpack
   - serverless-offline
   - serverless-dotenv-plugin # Load .env as environment variables
-  - serverless-pseudo-parameters 
 
 custom:
   # Our stage is based on what is passed in when running serverless
@@ -17,8 +15,6 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   # Name of the SST app that's deploying our infrastructure
   sstApp: ${self:custom.stage}-cereal-coffee-shop-infra-2
-  # # Set the table name here so we can use it while testing locally
-  # tableName: ${self:custom.stage}-coffeeProducts
 
 provider:
   name: aws
@@ -26,13 +22,13 @@ provider:
   stage: dev
   region: us-east-1
 
-  # These environment variables are made available to our functions under process.env.
-    # These environment variables are made available to our functions
+  # These environment variables are made available to our functions
   # under process.env.
   environment:
-    stripeSecretKey: ${env:STRIPE_SECRET_KEY}
-    tableName: !ImportValue '${self:custom.sstApp}-TableName'
+    tableName: !ImportValue '${self:custom.sstApp}-Product-TableName'
 
+  # 'iamRoleStatements' defines the permission policy for the Lambda function.
+  # In this case Lambda functions are granted with permissions to access DynamoDB.
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -43,73 +39,23 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
         - dynamodb:DescribeTable
-      # Restrict our IAM role permissions to
-      # the specific table for the stage
-      Resource:
-        - !ImportValue '${self:custom.sstApp}-TableArn'
+      Resource: "arn:aws:dynamodb:us-east-1:*:*"
 
 functions:
+  # Defines an HTTP API endpoint that calls the main function in create.js
+  # - path: url path is /notes
+  # - method: POST request
+  # - cors: enabled CORS (Cross-Origin Resource Sharing) for browser cross
+  #     domain api call
   # - authorizer: authenticate using the AWS IAM role
-  productCreate:
-    handler: products.create
-    events:
-      - http:
-          path: products
-          method: post
-          cors: true
-          authorizer: aws_iam
-
-  productGet:
-    handler: products.get
-    events:
-      - http:
-          path: products/{id}
-          method: get
-          cors: true
-          authorizer: aws_iam
-
-  productList:
-    handler: products.list
+  list:
+    handler: list.main
     events:
       - http:
           path: products
           method: get
           cors: true
-          authorizer: aws_iam
-
-  productUpdate:
-    handler: products.update
-    events:
-      - http:
-          path: products/{id}
-          method: put
-          cors: true
-          authorizer: aws_iam
-
-  productDel:
-    handler: products.del
-    events:
-      - http:
-          path: products/{id}
-          method: delete
-          cors: true
-          authorizer: aws_iam
-
-  billingStripe:
-    handler: billing.stripe
-    events:
-      - http:
-          path: billing
-          method: post
-          cors: true
-          authorizer: aws_iam
-          
 # Create our resources with separate CloudFormation templates
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}
-  # Cognito Identity Pool Policy
-  - ${file(resources/cognito-policy.yml)}
-  
-
-

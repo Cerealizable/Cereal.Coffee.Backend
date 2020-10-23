@@ -1,8 +1,0 @@
-{
-    "body": "{\"content\":\"hello world\", \"attachment\":\"hello.jpg\", \"price\":12.50}",
-    "requestContext": {
-        "identity": {
-            "cognitoIdentityId": "COMPANY-SUB-1234"
-        }
-    }
-}
