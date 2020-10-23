@@ -147,7 +147,6 @@ functions:
           path: products
           method: get
           cors: true
-          authorizer: aws_iam
 
   productUpdate:
     handler: products.update
