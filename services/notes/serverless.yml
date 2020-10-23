@@ -144,7 +144,7 @@ functions:
     handler: products.list
     events:
       - http:
-          path: products/{companyId}
+          path: products/{id}
           method: get
           cors: true
 
